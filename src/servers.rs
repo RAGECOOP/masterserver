@@ -76,17 +76,16 @@ pub fn update_or_insert(info: &Server) {
 
     // Try to get the index of the current server position in our list by its address and port
     let index = list.iter().position(|r| r.address.as_ref().unwrap() == info.address.as_ref().unwrap() && r.port.as_ref().unwrap() == info.port.as_ref().unwrap());
-    // Check if this server already exists
+    // Check if this server already exists.
+    // If this server is not in our list, we will add it
     if index.is_none() {
-      // Add this server to our list
       *&list.push(info.clone());
-      return;
+    } else {
+      // Get the server via `index` and change some values
+      let mut server = list.get_mut(index.unwrap()).unwrap();
+      server.players = info.players.clone();
+      server.max_players = info.max_players.clone();
     }
-
-    // Get the server via `index` and change some values
-    let mut server = list.get_mut(index.unwrap()).unwrap();
-    server.players = info.players.clone();
-    server.max_players = info.max_players.clone();
 
     // Unlock
     std::mem::drop(list);
