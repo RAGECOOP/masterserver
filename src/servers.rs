@@ -1,3 +1,4 @@
+use std::sync::Mutex;
 use serde::{
   Serialize,
   Deserialize
@@ -32,35 +33,62 @@ pub struct Server {
   pub public_key_exponent: Option<String>
 }
 
-static mut SERVER_LIST: Vec<Server> = Vec::new();
-pub fn get_servers() -> &'static Vec<Server> {
+static mut SERVER_LIST: Mutex<Vec<Server>> = Mutex::new(Vec::new());
+pub fn get_all() -> Vec<Server> {
   unsafe {
-    SERVER_LIST.as_ref()
+    // Lock
+    let list = SERVER_LIST.lock().unwrap();
+
+    // Clone the list of servers
+    let result = list.clone();
+
+    // Unlock
+    std::mem::drop(list);
+    
+    // Return
+    result
   }
 }
-
-pub fn insert_server(info: &Server) {
+pub fn get_count() -> (usize, usize) {
   unsafe {
-    SERVER_LIST.push(info.clone());
-  }
-}
+    // Lock
+    let list = SERVER_LIST.lock().unwrap();
 
-pub fn update_server(info: &Server) -> bool {
-  unsafe {
-    let index = SERVER_LIST.iter().position(|r| r.address.as_ref().unwrap() == info.address.as_ref().unwrap() && r.port.as_ref().unwrap() == info.port.as_ref().unwrap());
-    if index.is_none() {
-      return false;
+    let total_servers = list.len();
+    let mut total_players = 0;
+    for i in list.iter() {
+      total_players += i.players.as_ref().unwrap().parse::<usize>().unwrap();
     }
 
-    let mut server = SERVER_LIST.get_mut(index.unwrap()).unwrap();
-    server.players = info.players.clone();
-  }
+    // Unlock
+    std::mem::drop(list);
 
-  true
+    // Return
+    (total_servers, total_players)
+  }
 }
 
-pub fn server_exists(info: &Server) -> bool {
+/// Update or add a server
+pub fn update_or_insert(info: &Server) {
   unsafe {
-    SERVER_LIST.iter().position(|r| r.address.as_ref().unwrap() == info.address.as_ref().unwrap() && r.port.as_ref().unwrap() == info.port.as_ref().unwrap()).is_some()
+    // Lock
+    let mut list = SERVER_LIST.lock().unwrap();
+
+    // Try to get the index of the current server position in our list by its address and port
+    let index = list.iter().position(|r| r.address.as_ref().unwrap() == info.address.as_ref().unwrap() && r.port.as_ref().unwrap() == info.port.as_ref().unwrap());
+    // Check if this server already exists
+    if index.is_none() {
+      // Add this server to our list
+      *&list.push(info.clone());
+      return;
+    }
+
+    // Get the server via `index` and change some values
+    let mut server = list.get_mut(index.unwrap()).unwrap();
+    server.players = info.players.clone();
+    server.max_players = info.max_players.clone();
+
+    // Unlock
+    std::mem::drop(list);
   }
 }

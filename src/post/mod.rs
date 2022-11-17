@@ -10,11 +10,7 @@ pub async fn server(info: web::Json<crate::servers::Server>) -> impl Responder {
     return HttpResponse::BadRequest().body("BAD REQUEST");
   }
 
-  if !crate::servers::server_exists(&info) {
-    crate::servers::insert_server(&info);
-  } else if !crate::servers::update_server(&info) {
-    return HttpResponse::BadRequest().body("Server could not be updated!");
-  }
+  crate::servers::update_or_insert(&info);
 
   HttpResponse::Ok().body("OK")
 }
