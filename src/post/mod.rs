@@ -4,18 +4,17 @@ use actix_web::{
   HttpResponse
 };
 
-pub async fn server(info: web::Json<crate::servers::Server>) -> impl Responder {
-  println!("{}", serde_json::to_string(&info).unwrap());
-  if !validate_info(&info) {
+pub async fn server(mut info: web::Json<crate::servers::Server>) -> impl Responder {
+  if !_check_info(&info) {
     return HttpResponse::BadRequest().body("BAD REQUEST");
   }
 
-  crate::servers::update_or_insert(&info);
+  crate::servers::update_or_insert(&mut info);
 
   HttpResponse::Ok().body("OK")
 }
 
-fn validate_info(info: &crate::servers::Server) -> bool {
+fn _check_info(info: &crate::servers::Server) -> bool {
   info.address.is_some()
   && info.port.is_some()
   && info.name.is_some()
