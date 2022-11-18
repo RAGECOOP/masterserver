@@ -18,6 +18,10 @@ async fn main() -> std::io::Result<()> {
   config::load_config("./config.toml");
   let conf = config::get_config();
 
+  logger::log("info", format!("port: {}", conf.server.port).as_str());
+  logger::log("info", format!("workers: {}", conf.server.workers).as_str());
+
+  logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port).as_str());
   HttpServer::new(move || {
     App::new()
         .route("/", web::post().to(post::server))

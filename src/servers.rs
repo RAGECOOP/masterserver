@@ -1,4 +1,7 @@
-use std::sync::{Mutex, MutexGuard};
+use std::sync::{
+  Mutex,
+  MutexGuard
+};
 use std::time::SystemTime;
 
 use serde::{
@@ -29,8 +32,8 @@ pub struct Server {
   pub zt_id: Option<String>,
   #[serde(rename = "ztAddress")]
   pub zt_address: Option<String>,
-  #[serde(rename = "publicKeyModules")]
-  pub public_key_modules: Option<String>,
+  #[serde(rename = "publicKeyModulus")]
+  pub public_key_modulus: Option<String>,
   #[serde(rename = "publicKeyExponent")]
   pub public_key_exponent: Option<String>,
   #[serde(rename = "playerStats")]
@@ -84,7 +87,7 @@ pub fn get_count() -> (usize, usize) {
 }
 
 /// Update or add a server
-pub fn update_or_insert(info: &mut Server) {
+pub fn update_or_insert(info: &mut Server) -> bool {
   let mut list: MutexGuard<Vec<Server>>;
   unsafe {
     // Lock
@@ -93,7 +96,13 @@ pub fn update_or_insert(info: &mut Server) {
 
   // Try to get the index of the current server position in our list by its address and port
   let index = list.iter().position(|r| r.address.as_ref().unwrap() == info.address.as_ref().unwrap() && r.port.as_ref().unwrap() == info.port.as_ref().unwrap());
-  let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+  let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+    Ok(r) => r.as_secs(),
+    Err(e) => {
+      crate::logger::log("error", &e.to_string());
+      return false;
+    }
+  };
   // Check if this server already exists.
   // If this server is not in our list, we will add it
   if index.is_none() {
@@ -114,10 +123,12 @@ pub fn update_or_insert(info: &mut Server) {
 
   // Unlock
   std::mem::drop(list);
+
+  true
 }
 
 /// Clean the list of servers
-pub fn cleanup() {
+pub fn cleanup() -> bool {
   let mut list: MutexGuard<Vec<Server>>;
   unsafe {
     // Lock
@@ -127,7 +138,13 @@ pub fn cleanup() {
   // The new list of servers that will replace the old one
   let mut new_list: Vec<Server> = Vec::new();
 
-  let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
+  let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+    Ok(r) => r.as_secs(),
+    Err(e) => {
+      crate::logger::log("error", &e.to_string());
+      return false;
+    }
+  };
   for i in list.iter() {
     // Check if the update is older than 10 seconds
     if current_timestamp - i.last_update.unwrap() > 10 {
@@ -142,4 +159,6 @@ pub fn cleanup() {
 
   // Unlock
   std::mem::drop(list);
+
+  true
 }

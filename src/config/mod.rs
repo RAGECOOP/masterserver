@@ -12,7 +12,7 @@ pub fn get_config() -> &'static structs::Data {
 }
 
 pub fn load_config(file_path: &str) {
-  let file_content = get_data_from_file(&file_path);
+  let file_content = _get_data_from_file(&file_path);
 
   unsafe {
     CONFIG = match toml::from_str(&file_content.as_str()) {
@@ -25,7 +25,7 @@ pub fn load_config(file_path: &str) {
   }
 }
 
-fn get_data_from_file(file_path: &str) -> String {
+fn _get_data_from_file(file_path: &str) -> String {
   super::logger::log("loading", format!("`{}`", &file_path).as_str());
 
   match fs::read_to_string(&file_path) {

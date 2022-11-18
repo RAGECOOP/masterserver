@@ -5,12 +5,18 @@ use actix_web::{
 };
 
 pub async fn server_list() -> impl Responder {
-  crate::servers::cleanup();
+  if !crate::servers::cleanup() {
+    return HttpResponse::InternalServerError().body("Something went wrong!");
+  }
+
   HttpResponse::Ok().content_type(ContentType::json()).body(serde_json::to_string(&crate::servers::get_all()).unwrap())
 }
 
 pub async fn server_count() -> impl Responder {
-  crate::servers::cleanup();
+  if !crate::servers::cleanup() {
+    return HttpResponse::InternalServerError().body("Something went wrong!");
+  }
+
   let (servers, players) = crate::servers::get_count();
   HttpResponse::Ok().content_type(ContentType::json()).body(json!({
     "servers": servers,
