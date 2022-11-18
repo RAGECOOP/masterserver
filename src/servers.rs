@@ -11,13 +11,13 @@ use serde::{
 
 #[derive(Serialize, Deserialize, Clone)]
 pub struct Server {
-  pub address: Option<String>,
-  pub port: Option<String>,
-  pub name: Option<String>,
-  pub version: Option<String>,
-  pub players: Option<String>,
+  pub address: String,
+  pub port: u16,
+  pub name: String,
+  pub version: String,
+  pub players: u16,
   #[serde(rename = "maxPlayers")]
-  pub max_players: Option<String>,
+  pub max_players: u16,
   pub country: Option<String>,
   pub description: Option<String>,
   pub website: Option<String>,
@@ -25,27 +25,37 @@ pub struct Server {
   pub game_mode: Option<String>,
   pub language: Option<String>,
   #[serde(rename = "useP2P")]
-  pub use_p2p: Option<bool>,
+  pub use_p2p: bool,
   #[serde(rename = "useZT")]
-  pub use_zt: Option<bool>,
+  pub use_zt: bool,
   #[serde(rename = "ztID")]
   pub zt_id: Option<String>,
   #[serde(rename = "ztAddress")]
   pub zt_address: Option<String>,
   #[serde(rename = "publicKeyModulus")]
-  pub public_key_modulus: Option<String>,
+  pub public_key_modulus: String,
   #[serde(rename = "publicKeyExponent")]
-  pub public_key_exponent: Option<String>,
-  #[serde(rename = "playerStats")]
-  pub player_stats: Option<PlayerStats>,
-  #[serde(rename = "lastUpdate")]
-  pub last_update: Option<u64>
+  pub public_key_exponent: String,
+  // We add these following fields ourselves
+  #[serde(rename = "playerStats", skip_deserializing)]
+  pub player_stats: PlayerStats,
+  #[serde(skip)]
+  pub last_update: u64
 }
 
-#[derive(Serialize, Deserialize, Clone)]
+impl Server {
+  // This function checks the name and description for bad words
+  /// TODO!
+  #[allow(dead_code)]
+  pub fn contains_bad_words(&self) -> bool {
+    false
+  }
+}
+
+#[derive(Serialize, Deserialize, Default, Clone)]
 pub struct PlayerStats {
-  pub players: Vec<i8>,
-  #[serde(rename = "lastUpdate")]
+  pub players: Vec<u16>,
+  #[serde(skip)]
   pub last_update: u64
 }
 
@@ -76,7 +86,7 @@ pub fn get_count() -> (usize, usize) {
   let total_servers = list.len();
   let mut total_players = 0;
   for i in list.iter() {
-    total_players += i.players.as_ref().unwrap().parse::<usize>().unwrap();
+    total_players += i.players as usize;
   }
 
   // Unlock
@@ -95,7 +105,7 @@ pub fn update_or_insert(info: &mut Server) -> bool {
   }
 
   // Try to get the index of the current server position in our list by its address and port
-  let index = list.iter().position(|r| r.address.as_ref().unwrap() == info.address.as_ref().unwrap() && r.port.as_ref().unwrap() == info.port.as_ref().unwrap());
+  let index = list.iter().position(|r| r.address == info.address && r.port == info.port);
   let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
     Ok(r) => r.as_secs(),
     Err(e) => {
@@ -106,46 +116,30 @@ pub fn update_or_insert(info: &mut Server) -> bool {
   // Check if this server already exists.
   // If this server is not in our list, we will add it
   if index.is_none() {
-    info.player_stats = Some(PlayerStats {
+    info.player_stats = PlayerStats {
       players: vec![0, 0, 0, 0, 0, 0],
       last_update: current_timestamp
-    });
-    info.last_update = Some(current_timestamp);
+    };
+    info.last_update = current_timestamp;
     //println!("{}", serde_json::to_string(&info).unwrap());
     *&list.push(info.to_owned());
   } else {
     // Get the server via `index` and change some values
     let mut server = list.get_mut(index.unwrap()).unwrap();
-    server.players = info.players.to_owned();
+    server.players = info.players;
 
-    // Update the highest player peak
-    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-      Ok(r1) => {
-        let player_stats = server.player_stats.as_mut().unwrap();
-        match server.players.as_ref().unwrap().parse::<i8>() {
-          Ok(r2) => {
-            let duration = r1.as_secs();
-            // Check if last update older than 10 minutes.
-            // If not and the new player count is higher than the old highest peak, replace that value
-            if duration - player_stats.last_update > 600 {
-              player_stats.players.pop();
-              player_stats.players.push(r2);
+    // Check if last update older than 10 minutes.
+    // If not and the new player count is higher than the old highest peak, replace that value
+    if current_timestamp - server.player_stats.last_update > 600 {
+      server.player_stats.players.remove(0);
+      server.player_stats.players.push(server.players);
 
-              player_stats.last_update = duration;
-            } else if r2 > *player_stats.players.last().unwrap() {
-              player_stats.players[5] = r2;
-            }
-          },
-          Err(_) => return false
-        };
-      },
-      Err(e) => {
-        crate::logger::log("error", &e.to_string());
-        return false;
-      }
-    };
+      server.player_stats.last_update = current_timestamp;
+    } else if server.players > *server.player_stats.players.last().unwrap() {
+      server.player_stats.players[5] = server.players;
+    }
     
-    server.last_update = Some(current_timestamp);
+    server.last_update = current_timestamp;
   }
 
   // Unlock
@@ -174,7 +168,7 @@ pub fn cleanup() -> bool {
   };
   for i in list.iter() {
     // Check if the update is older than 12 seconds
-    if current_timestamp - i.last_update.unwrap() > 12 {
+    if current_timestamp - i.last_update > 12 {
       continue;
     }
 

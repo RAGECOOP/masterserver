@@ -6,10 +6,6 @@ use actix_web::{
 };
 
 pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::Server>) -> impl Responder {
-  if !_check_info(&info) {
-    return HttpResponse::BadRequest().body("BAD REQUEST!");
-  }
-
   // Get the real IP address with Cloudflare
   match req.headers().get("cf-connecting-ip") {
     Some(r) => {
@@ -18,7 +14,7 @@ pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::Server
       // Check if the IP address a valid IPv4 so we override the info.address because
       // maybe this guy changed his address with the source code
       if addr.parse::<std::net::Ipv4Addr>().is_ok() {
-        info.address = Some(addr.to_string());
+        info.address = addr.to_string();
       }
     },
     None => {
@@ -37,24 +33,4 @@ pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::Server
   }
 
   HttpResponse::Ok().body("OK")
-}
-
-fn _check_info(info: &crate::servers::Server) -> bool {
-  info.address.is_some()
-  && info.port.is_some()
-  && info.name.is_some()
-  && info.version.is_some()
-  && info.players.is_some()
-  && info.max_players.is_some()
-  && info.country.is_some()
-  && info.description.is_some()
-  && info.website.is_some()
-  && info.game_mode.is_some()
-  && info.language.is_some()
-  && info.use_p2p.is_some()
-  && info.use_zt.is_some()
-  && info.zt_id.is_some()
-  && info.zt_address.is_some()
-  //&& info.public_key_modules.is_some()
-  //&& info.public_key_exponent.is_some()
 }
