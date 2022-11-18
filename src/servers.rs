@@ -117,7 +117,34 @@ pub fn update_or_insert(info: &mut Server) -> bool {
     // Get the server via `index` and change some values
     let mut server = list.get_mut(index.unwrap()).unwrap();
     server.players = info.players.to_owned();
-    server.max_players = info.max_players.to_owned();
+
+    // Update the highest player peak
+    match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
+      Ok(r1) => {
+        let player_stats = server.player_stats.as_mut().unwrap();
+        match server.players.as_ref().unwrap().parse::<i8>() {
+          Ok(r2) => {
+            let duration = r1.as_secs();
+            // Check if last update older than 10 minutes.
+            // If not and the new player count is higher than the old highest peak, replace that value
+            if duration - player_stats.last_update > 600 {
+              player_stats.players.pop();
+              player_stats.players.push(r2);
+
+              player_stats.last_update = duration;
+            } else if r2 > *player_stats.players.last().unwrap() {
+              player_stats.players[5] = r2;
+            }
+          },
+          Err(_) => return false
+        };
+      },
+      Err(e) => {
+        crate::logger::log("error", &e.to_string());
+        return false;
+      }
+    };
+    
     server.last_update = Some(current_timestamp);
   }
 
@@ -146,8 +173,8 @@ pub fn cleanup() -> bool {
     }
   };
   for i in list.iter() {
-    // Check if the update is older than 10 seconds
-    if current_timestamp - i.last_update.unwrap() > 10 {
+    // Check if the update is older than 12 seconds
+    if current_timestamp - i.last_update.unwrap() > 12 {
       continue;
     }
 
