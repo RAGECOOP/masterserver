@@ -1,7 +1,5 @@
 use std::fs;
 
-use toml;
-
 mod structs;
 
 static mut CONFIG: Option<structs::Data> = None;

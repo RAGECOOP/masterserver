@@ -6,6 +6,7 @@ use actix_web::{
   App,
   web
 };
+use actix_cors::Cors;
 
 mod logger;
 mod config;
@@ -22,8 +23,13 @@ async fn main() -> std::io::Result<()> {
   logger::log("info", format!("workers: {}", conf.server.workers).as_str());
 
   logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port).as_str());
-  HttpServer::new(move || {
+  HttpServer::new(|| {
+    let cors = Cors::default()
+        .allow_any_origin()
+        .allowed_methods(vec!["GET", "POST"]);
+    
     App::new()
+        .wrap(cors)
         .route("/", web::post().to(post::server))
         .route("/", web::get().to(get::server_list))
         .route("/count", web::get().to(get::server_count))

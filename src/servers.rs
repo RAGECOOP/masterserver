@@ -107,7 +107,7 @@ pub fn update_or_insert(info: &mut Server) -> bool {
   // If this server is not in our list, we will add it
   if index.is_none() {
     info.player_stats = Some(PlayerStats {
-      players: vec![0, 0, 0, 0, 0],
+      players: vec![0, 0, 0, 0, 0, 0],
       last_update: current_timestamp
     });
     info.last_update = Some(current_timestamp);
