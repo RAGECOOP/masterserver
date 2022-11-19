@@ -1,23 +1,17 @@
-use std::sync::{
-  Mutex,
-  MutexGuard
-};
+use std::sync::Mutex;
 use std::time::SystemTime;
 
 pub mod structs;
 
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
 pub fn get_all() -> Vec<structs::Server> {
-  let list: MutexGuard<Vec<structs::Server>>;
-  unsafe {
-    // Lock
-    list = SERVER_LIST.lock().unwrap();
-  }
+  // Lock `SERVER_LIST` for other threads
+  let list = unsafe { SERVER_LIST.lock().unwrap() };
 
   // Clone the list of servers
   let result = list.clone();
 
-  // Unlock
+  // Unlock `SERVER_LIST` for other threads
   std::mem::drop(list);
   
   // Return
@@ -25,11 +19,8 @@ pub fn get_all() -> Vec<structs::Server> {
 }
 
 pub fn get_count() -> (usize, usize) {
-  let list: MutexGuard<Vec<structs::Server>>;
-  unsafe {
-    // Lock
-    list = SERVER_LIST.lock().unwrap();
-  }
+  // Lock `SERVER_LIST` for other threads
+  let list = unsafe { SERVER_LIST.lock().unwrap() };
 
   let total_servers = list.len();
   let mut total_players = 0;
@@ -37,7 +28,7 @@ pub fn get_count() -> (usize, usize) {
     total_players += i.players as usize;
   }
 
-  // Unlock
+  // Unlock `SERVER_LIST` for other threads
   std::mem::drop(list);
 
   // Return
@@ -45,22 +36,16 @@ pub fn get_count() -> (usize, usize) {
 }
 
 /// Update or add a server
-pub fn update_or_insert(info: &mut structs::Server) -> bool {
-  let mut list: MutexGuard<Vec<structs::Server>>;
-  unsafe {
-    // Lock
-    list = SERVER_LIST.lock().unwrap();
-  }
+pub fn update_or_insert(info: &mut structs::Server) {
+  // Lock `SERVER_LIST` for other threads
+  let mut list = unsafe { SERVER_LIST.lock().unwrap() };
+
+  // Get the current timestamp as seconds in `u64`
+  let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 
   // Try to get the index of the current server position in our list by its address and port
   let index = list.iter().position(|r| r.address == info.address && r.port == info.port);
-  let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-    Ok(r) => r.as_secs(),
-    Err(e) => {
-      crate::logger::log("error", e.to_string());
-      return false;
-    }
-  };
+  
   // Check if this server already exists.
   // If this server is not in our list, we will add it
   if index.is_none() {
@@ -69,7 +54,8 @@ pub fn update_or_insert(info: &mut structs::Server) -> bool {
       last_update: current_timestamp
     };
     info.last_update = current_timestamp;
-    //println!("{}", serde_json::to_string(&info).unwrap());
+    
+    // Add the new server to `SERVER_LIST`
     *&list.push(info.to_owned());
   } else {
     // Get the server via `index` and change some values
@@ -90,44 +76,21 @@ pub fn update_or_insert(info: &mut structs::Server) -> bool {
     server.last_update = current_timestamp;
   }
 
-  // Unlock
+  // Unlock `SERVER_LIST` for other threads
   std::mem::drop(list);
-
-  true
 }
 
 /// Clean the list of servers
-pub fn cleanup() -> bool {
-  let mut list: MutexGuard<Vec<structs::Server>>;
-  unsafe {
-    // Lock
-    list = SERVER_LIST.lock().unwrap();
-  }
+pub fn cleanup() {
+  // Lock `SERVER_LIST` for other threads
+  let mut list = unsafe { SERVER_LIST.lock().unwrap() };
 
-  // The new list of servers that will replace the old one
-  let mut new_list: Vec<structs::Server> = Vec::new();
+  // Get the current timestamp as seconds in `u64`
+  let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 
-  let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
-    Ok(r) => r.as_secs(),
-    Err(e) => {
-      crate::logger::log("error", e.to_string());
-      return false;
-    }
-  };
-  for i in list.iter() {
-    // Check if the update is older than 12 seconds
-    if current_timestamp - i.last_update > 12 {
-      continue;
-    }
+  // Keep all elements that are true and remove others
+  list.retain(|x| current_timestamp - x.last_update <= 12);
 
-    new_list.push(i.clone());
-  }
-
-  // Replace the current server list with "new_list"
-  *list = new_list;
-
-  // Unlock
+  // Unlock `SERVER_LIST` for other threads
   std::mem::drop(list);
-
-  true
 }

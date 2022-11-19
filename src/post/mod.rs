@@ -28,9 +28,7 @@ pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::struct
     None => {}
   }
 
-  if !crate::servers::update_or_insert(&mut info) {
-    return HttpResponse::InternalServerError().body("Something went wrong!");
-  }
+  crate::servers::update_or_insert(&mut info);
 
   HttpResponse::Ok().body("OK")
 }
