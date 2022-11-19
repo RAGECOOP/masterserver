@@ -5,7 +5,7 @@ use actix_web::{
   HttpRequest
 };
 
-pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::Server>) -> impl Responder {
+pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::structs::Server>) -> impl Responder {
   // Get the real IP address with Cloudflare
   match req.headers().get("cf-connecting-ip") {
     Some(r) => {

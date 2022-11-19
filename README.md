@@ -17,5 +17,5 @@ Build for release:
 To leave the build environment, enter `exit`.
 
 ## Cleanup
-Remove the build-evironment image:
+Remove the build-environment image:
 `docker rmi ragecoop-buildenv -f`

@@ -2,34 +2,26 @@ use std::fs;
 
 mod structs;
 
-static mut CONFIG: Option<structs::Data> = None;
-pub fn get_config() -> &'static structs::Data {
-  unsafe {
-    CONFIG.as_ref().unwrap()
-  }
-}
-
-pub fn load_config(file_path: &str) {
+pub fn load_config() -> structs::Data {
+  let file_path = "./config.toml";
   let file_content = _get_data_from_file(&file_path);
 
-  unsafe {
-    CONFIG = match toml::from_str(&file_content.as_str()) {
-      Ok(r) => Some(r),
-      Err(e) => {
-        super::logger::log("error", format!("Unable to load data from `{}`\n{}", &file_path, e.to_string()).as_str());
-        std::process::exit(1);
-      }
+  match toml::from_str::<structs::Data>(&file_content.as_str()) {
+    Ok(r) => r,
+    Err(e) => {
+      super::logger::log("error", format!("Unable to load data from `{}`\n{}", &file_path, e.to_string()));
+      std::process::exit(1);
     }
   }
 }
 
 fn _get_data_from_file(file_path: &str) -> String {
-  super::logger::log("loading", format!("`{}`", &file_path).as_str());
+  super::logger::log("loading", format!("`{}`", &file_path));
 
   match fs::read_to_string(&file_path) {
     Ok(r) => r,
     Err(e) => {
-      super::logger::log("error", format!("could not read file `{}`\n{}", &file_path, e.to_string()).as_str());
+      super::logger::log("error", format!("could not read file `{}`\n{}", &file_path, e.to_string()));
       std::process::exit(1);
     }
   }

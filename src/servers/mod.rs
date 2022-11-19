@@ -4,64 +4,11 @@ use std::sync::{
 };
 use std::time::SystemTime;
 
-use serde::{
-  Serialize,
-  Deserialize
-};
+pub mod structs;
 
-#[derive(Serialize, Deserialize, Clone)]
-pub struct Server {
-  pub address: String,
-  pub port: u16,
-  pub name: String,
-  pub version: String,
-  pub players: u16,
-  #[serde(rename = "maxPlayers")]
-  pub max_players: u16,
-  pub country: Option<String>,
-  pub description: Option<String>,
-  pub website: Option<String>,
-  #[serde(rename = "gameMode")]
-  pub game_mode: Option<String>,
-  pub language: Option<String>,
-  #[serde(rename = "useP2P")]
-  pub use_p2p: bool,
-  #[serde(rename = "useZT")]
-  pub use_zt: bool,
-  #[serde(rename = "ztID")]
-  pub zt_id: Option<String>,
-  #[serde(rename = "ztAddress")]
-  pub zt_address: Option<String>,
-  #[serde(rename = "publicKeyModulus")]
-  pub public_key_modulus: String,
-  #[serde(rename = "publicKeyExponent")]
-  pub public_key_exponent: String,
-  // We add these following fields ourselves
-  #[serde(rename = "playerStats", skip_deserializing)]
-  pub player_stats: PlayerStats,
-  #[serde(skip)]
-  pub last_update: u64
-}
-
-impl Server {
-  // This function checks the name and description for bad words
-  /// TODO!
-  #[allow(dead_code)]
-  pub fn contains_bad_words(&self) -> bool {
-    false
-  }
-}
-
-#[derive(Serialize, Deserialize, Default, Clone)]
-pub struct PlayerStats {
-  pub players: Vec<u16>,
-  #[serde(skip)]
-  pub last_update: u64
-}
-
-static mut SERVER_LIST: Mutex<Vec<Server>> = Mutex::new(Vec::new());
-pub fn get_all() -> Vec<Server> {
-  let list: MutexGuard<Vec<Server>>;
+static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
+pub fn get_all() -> Vec<structs::Server> {
+  let list: MutexGuard<Vec<structs::Server>>;
   unsafe {
     // Lock
     list = SERVER_LIST.lock().unwrap();
@@ -76,8 +23,9 @@ pub fn get_all() -> Vec<Server> {
   // Return
   result
 }
+
 pub fn get_count() -> (usize, usize) {
-  let list: MutexGuard<Vec<Server>>;
+  let list: MutexGuard<Vec<structs::Server>>;
   unsafe {
     // Lock
     list = SERVER_LIST.lock().unwrap();
@@ -97,8 +45,8 @@ pub fn get_count() -> (usize, usize) {
 }
 
 /// Update or add a server
-pub fn update_or_insert(info: &mut Server) -> bool {
-  let mut list: MutexGuard<Vec<Server>>;
+pub fn update_or_insert(info: &mut structs::Server) -> bool {
+  let mut list: MutexGuard<Vec<structs::Server>>;
   unsafe {
     // Lock
     list = SERVER_LIST.lock().unwrap();
@@ -109,14 +57,14 @@ pub fn update_or_insert(info: &mut Server) -> bool {
   let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
     Ok(r) => r.as_secs(),
     Err(e) => {
-      crate::logger::log("error", &e.to_string());
+      crate::logger::log("error", e.to_string());
       return false;
     }
   };
   // Check if this server already exists.
   // If this server is not in our list, we will add it
   if index.is_none() {
-    info.player_stats = PlayerStats {
+    info.player_stats = structs::PlayerStats {
       players: vec![0, 0, 0, 0, 0, 0],
       last_update: current_timestamp
     };
@@ -150,19 +98,19 @@ pub fn update_or_insert(info: &mut Server) -> bool {
 
 /// Clean the list of servers
 pub fn cleanup() -> bool {
-  let mut list: MutexGuard<Vec<Server>>;
+  let mut list: MutexGuard<Vec<structs::Server>>;
   unsafe {
     // Lock
     list = SERVER_LIST.lock().unwrap();
   }
 
   // The new list of servers that will replace the old one
-  let mut new_list: Vec<Server> = Vec::new();
+  let mut new_list: Vec<structs::Server> = Vec::new();
 
   let current_timestamp = match SystemTime::now().duration_since(SystemTime::UNIX_EPOCH) {
     Ok(r) => r.as_secs(),
     Err(e) => {
-      crate::logger::log("error", &e.to_string());
+      crate::logger::log("error", e.to_string());
       return false;
     }
   };
