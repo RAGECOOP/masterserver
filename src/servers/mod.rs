@@ -3,7 +3,10 @@ use std::time::SystemTime;
 
 pub mod structs;
 
+/// All servers are stored in this variable
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
+
+/// Get a cloned Vector from the current server list
 pub fn get_all() -> Vec<structs::Server> {
   // Lock `SERVER_LIST` for other threads
   let list = unsafe { SERVER_LIST.lock().unwrap() };
@@ -18,6 +21,7 @@ pub fn get_all() -> Vec<structs::Server> {
   result
 }
 
+/// Get the length of all servers and count of all players
 pub fn get_count() -> (usize, usize) {
   // Lock `SERVER_LIST` for other threads
   let list = unsafe { SERVER_LIST.lock().unwrap() };
@@ -56,7 +60,7 @@ pub fn update_or_insert(info: &mut structs::Server) {
     info.last_update = current_timestamp;
     
     // Add the new server to `SERVER_LIST`
-    *&list.push(info.to_owned());
+    list.push(info.to_owned());
   } else {
     // Get the server via `index` and change some values
     let mut server = list.get_mut(index.unwrap()).unwrap();

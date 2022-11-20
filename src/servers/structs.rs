@@ -37,15 +37,6 @@ pub struct Server {
   pub last_update: u64
 }
 
-impl Server {
-  // This function checks the name and description for bad words
-  /// TODO!
-  #[allow(dead_code)]
-  pub fn contains_bad_words(&self) -> bool {
-    false
-  }
-}
-
 #[derive(Serialize, Deserialize, Default, Clone)]
 pub struct PlayerStats {
   pub players: Vec<u16>,
