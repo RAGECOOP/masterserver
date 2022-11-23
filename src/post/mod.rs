@@ -24,8 +24,18 @@ pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::struct
 
   // Try using Cloudflare to get the original country from the IP address
   match req.headers().get("cf-ipcountry") {
-    Some(r) => info.country = Some(String::from(r.to_str().unwrap())),
+    Some(r) => info.country = String::from(r.to_str().unwrap()),
     None => {}
+  }
+
+  // We don't host books!
+  if info.name.len() > 25
+  || info.description.len() > 390
+  || info.website.len() > 50
+  || info.country.len() > 3
+  || info.public_key_modulus.len() > 344
+  || info.public_key_exponent.len() > 16 {
+    return HttpResponse::BadRequest().body("Your server name, description, website, country, public-key-modulus or public-key-exponent length is too long!");
   }
 
   crate::servers::update_or_insert(&mut info);

@@ -53,6 +53,8 @@ pub fn update_or_insert(info: &mut structs::Server) {
   // Check if this server already exists.
   // If this server is not in our list, we will add it
   if index.is_none() {
+    info.filter_bad_words();
+
     info.player_stats = structs::PlayerStats {
       players: vec![0, 0, 0, 0, 0, 0],
       last_update: current_timestamp

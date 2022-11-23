@@ -2,7 +2,7 @@
  * THIS IS JUST A SIMPLE CONSOLE LOGGER!
  */
 
-pub fn log(state: &str, text: String) {
+pub fn log<T: Into<String>>(state: &str, text: T) {
   use colored::*;
 
   let s = match state {
@@ -12,5 +12,5 @@ pub fn log(state: &str, text: String) {
     _ => "INFO".bright_white()
   };
 
-  println!("{} {}", s.bold(), text);
+  println!("{} {}", s.bold(), text.into());
 }
