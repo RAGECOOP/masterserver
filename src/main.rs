@@ -2,10 +2,12 @@
 extern crate serde_json;
 
 use actix_web::{
+  dev::Service as _,
   HttpServer,
   App,
   web
 };
+use futures_util::future::FutureExt;
 use actix_cors::Cors;
 
 mod logger;
@@ -29,9 +31,15 @@ async fn main() -> std::io::Result<()> {
     
     App::new()
         .wrap(cors)
+        .wrap_fn(|req, srv| {
+          servers::cleanup();
+          srv.call(req).map(|res| {
+            res
+          })
+        })
         .route("/", web::post().to(post::server))
-        .route("/", web::get().to(get::server_list))
-        .route("/count", web::get().to(get::server_count))
+        .route("/", web::get().to(get::list))
+        .route("/count", web::get().to(get::count))
   })
   .workers(conf.server.workers as usize)
   .bind(("127.0.0.1", conf.server.port))?

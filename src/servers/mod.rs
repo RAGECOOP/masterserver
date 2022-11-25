@@ -9,7 +9,15 @@ static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
 /// Get a cloned Vector from the current server list
 pub fn get_all() -> Vec<structs::Server> {
   // Lock `SERVER_LIST` for other threads
-  let list = unsafe { SERVER_LIST.lock().unwrap() };
+  let list = unsafe {
+    match SERVER_LIST.lock() {
+      Ok(r) => r,
+      Err(e) => {
+        crate::logger::log("error", format!("something went wrong while trying to lock `servers->SERVER_LIST`: {}", e.to_string()));
+        return Vec::new();
+      }
+    }
+  };
 
   // Clone the list of servers
   let result = list.clone();
@@ -24,7 +32,15 @@ pub fn get_all() -> Vec<structs::Server> {
 /// Get the length of all servers and count of all players
 pub fn get_count() -> (usize, usize) {
   // Lock `SERVER_LIST` for other threads
-  let list = unsafe { SERVER_LIST.lock().unwrap() };
+  let list = unsafe {
+    match SERVER_LIST.lock() {
+      Ok(r) => r,
+      Err(e) => {
+        crate::logger::log("error", format!("something went wrong while trying to lock `servers->SERVER_LIST`: {}", e.to_string()));
+        return (0, 0);
+      }
+    }
+  };
 
   let total_servers = list.len();
   let mut total_players = 0;
@@ -42,7 +58,15 @@ pub fn get_count() -> (usize, usize) {
 /// Update or add a server
 pub fn update_or_insert(info: &mut structs::Server) {
   // Lock `SERVER_LIST` for other threads
-  let mut list = unsafe { SERVER_LIST.lock().unwrap() };
+  let mut list = unsafe {
+    match SERVER_LIST.lock() {
+      Ok(r) => r,
+      Err(e) => {
+        crate::logger::log("error", format!("something went wrong while trying to lock `servers->SERVER_LIST`: {}", e.to_string()));
+        return;
+      }
+    }
+  };
 
   // Get the current timestamp as seconds in `u64`
   let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
@@ -89,7 +113,15 @@ pub fn update_or_insert(info: &mut structs::Server) {
 /// Clean the list of servers
 pub fn cleanup() {
   // Lock `SERVER_LIST` for other threads
-  let mut list = unsafe { SERVER_LIST.lock().unwrap() };
+  let mut list = unsafe {
+    match SERVER_LIST.lock() {
+      Ok(r) => r,
+      Err(e) => {
+        crate::logger::log("error", format!("something went wrong while trying to lock `servers->SERVER_LIST`: {}", e.to_string()));
+        return;
+      }
+    }
+  };
 
   // Get the current timestamp as seconds in `u64`
   let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
