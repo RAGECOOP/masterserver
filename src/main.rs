@@ -7,7 +7,6 @@ use actix_web::{
   App,
   web
 };
-use futures_util::future::FutureExt;
 use actix_cors::Cors;
 
 mod logger;
@@ -33,9 +32,11 @@ async fn main() -> std::io::Result<()> {
         .wrap(cors)
         .wrap_fn(|req, srv| {
           servers::cleanup();
-          srv.call(req).map(|res| {
-            res
-          })
+          let fut = srv.call(req);
+          async {
+            let res = fut.await?;
+            Ok(res)
+          }
         })
         .route("/", web::post().to(post::server))
         .route("/", web::get().to(get::list))
