@@ -99,7 +99,7 @@ fn server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Se
     match SERVER_LIST.lock() {
       Ok(r) => r,
       Err(e) => {
-        crate::logger::log("error", format!("something went wrong while trying to lock `servers->SERVER_LIST`: {}", e.to_string()));
+        crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`: {}", e.to_string()));
         return;
       }
     }
