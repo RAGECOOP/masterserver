@@ -9,12 +9,11 @@ pub mod structs;
 /// All servers are stored in this variable
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
 
-/// Get a cloned Vector from the current server list
-pub fn get_all() -> Vec<structs::Server> {
+/// Get a copy of the current server list
+pub fn get_list() -> Vec<structs::Server> {
   let mut result: Vec<structs::Server> = Vec::new();
-  
-  server_list_callback(&mut |list| {
-    // Clone the list of servers
+
+  _server_list_callback(&mut |list| {
     result = list.clone();
   });
 
@@ -22,25 +21,9 @@ pub fn get_all() -> Vec<structs::Server> {
   result
 }
 
-/// Get the length of all servers and count of all players
-pub fn get_count() -> (usize, usize) {
-  let mut total_servers: usize = 0;
-  let mut total_players: usize = 0;
-
-  server_list_callback(&mut |list| {
-    total_servers = list.len();
-    for i in list.iter() {
-      total_players += i.players as usize;
-    }
-  });
-
-  // Return
-  (total_servers, total_players)
-}
-
 /// Update or add a server
 pub fn update_or_insert(info: &mut structs::Server) {
-  server_list_callback(&mut |list| {
+  _server_list_callback(&mut |list| {
     // Try to get the index of the current server position in our list by its address and port
     let index = list.iter().position(|r| r.address == info.address && r.port == info.port);
 
@@ -53,7 +36,7 @@ pub fn update_or_insert(info: &mut structs::Server) {
       info.filter_bad_words();
 
       info.player_stats = structs::PlayerStats {
-        players: vec![0, 0, 0, 0, 0, 0],
+        players: vec![0; 6],
         last_update: current_timestamp
       };
       info.last_update = current_timestamp;
@@ -83,7 +66,7 @@ pub fn update_or_insert(info: &mut structs::Server) {
 
 /// Clean the list of servers
 pub fn cleanup() {
-  server_list_callback(&mut |list| {
+  _server_list_callback(&mut |list| {
     // Get the current timestamp as seconds in `u64`
     let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();
 
@@ -93,7 +76,7 @@ pub fn cleanup() {
 }
 
 /// Lock `SERVER_LIST` for other threads, call a function and unlock `SERVER_LIST`
-fn server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
+fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
   // Lock `SERVER_LIST` for other threads
   let mut list = unsafe {
     match SERVER_LIST.lock() {

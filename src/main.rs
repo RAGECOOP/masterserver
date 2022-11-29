@@ -39,7 +39,8 @@ async fn main() -> std::io::Result<()> {
           }
         })
         .route("/", web::post().to(post::server))
-        .route("/", web::get().to(get::list))
+        .route("/", web::get().to(get::all))
+        .route("/servers", web::get().to(get::server_list))
         .route("/count", web::get().to(get::count))
   })
   .workers(conf.server.workers as usize)
