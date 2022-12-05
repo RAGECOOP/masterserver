@@ -4,15 +4,6 @@ use actix_web::{
   http::header::ContentType
 };
 
-pub async fn all() -> impl Responder {
-  let servers = crate::servers::get_list();
-  HttpResponse::Ok().content_type(ContentType::json()).body(json!({
-    "server_count": servers.len(),
-    "player_count": _get_total_player_count(&servers),
-    "servers": servers
-  }).to_string())
-}
-
 pub async fn server_list() -> impl Responder {
   let servers = crate::servers::get_list();
   HttpResponse::Ok().content_type(ContentType::json()).body(json!({
@@ -25,6 +16,15 @@ pub async fn count() -> impl Responder {
   HttpResponse::Ok().content_type(ContentType::json()).body(json!({
     "server_count": servers.len(),
     "player_count": _get_total_player_count(&servers)
+  }).to_string())
+}
+
+pub async fn all() -> impl Responder {
+  let servers = crate::servers::get_list();
+  HttpResponse::Ok().content_type(ContentType::json()).body(json!({
+    "server_count": servers.len(),
+    "player_count": _get_total_player_count(&servers),
+    "servers": servers
   }).to_string())
 }
 
