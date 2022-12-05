@@ -6,9 +6,7 @@ use actix_web::{
 
 pub async fn server_list() -> impl Responder {
   let servers = crate::servers::get_list();
-  HttpResponse::Ok().content_type(ContentType::json()).body(json!({
-    "servers": servers
-  }).to_string())
+  HttpResponse::Ok().content_type(ContentType::json()).body(serde_json::to_string(&servers).unwrap())
 }
 
 pub async fn count() -> impl Responder {
