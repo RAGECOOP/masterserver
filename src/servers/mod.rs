@@ -9,19 +9,15 @@ pub mod structs;
 /// All servers are stored in this variable
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
 
-/// Get a copy of the current server list
+/// Get a clone of the current server list
 pub fn get_list() -> Vec<structs::Server> {
   let mut result: Vec<structs::Server> = Vec::new();
-
-  _server_list_callback(&mut |list| {
-    result = list.clone();
-  });
-
-  // Return
+  _server_list_callback(&mut |list| { result = list.clone(); });
   result
 }
 
-/// Update or add a server
+/// Check if there is a server with the same IP address and port in the server list so we can update the server.
+/// Otherwise we add this server to the server list
 pub fn update_or_insert(info: &mut structs::Server) {
   _server_list_callback(&mut |list| {
     // Try to get the index of the current server position in our list by its address and port
@@ -41,10 +37,10 @@ pub fn update_or_insert(info: &mut structs::Server) {
       };
       info.last_update = current_timestamp;
       
-      // Add the new server to `SERVER_LIST`
-      list.push(info.to_owned());
+      // Now clone "info" and push it to the server list
+      list.push(info.clone());
     } else {
-      // Get the server via `index` and change some values
+      // Get a reference from the server via "index" and update some data
       let mut server = list.get_mut(index.unwrap()).unwrap();
       server.players = info.players;
 
@@ -64,7 +60,7 @@ pub fn update_or_insert(info: &mut structs::Server) {
   });
 }
 
-/// Clean the list of servers
+/// Remove all servers from our server list that have not been updated for more than 12 seconds
 pub fn cleanup() {
   _server_list_callback(&mut |list| {
     // Get the current timestamp as seconds in `u64`
@@ -75,21 +71,12 @@ pub fn cleanup() {
   });
 }
 
-/// Lock `SERVER_LIST` for other threads, call a function and unlock `SERVER_LIST`
+/// Lock `SERVER_LIST` for other threads and call a function
 fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
-  // Lock `SERVER_LIST` for other threads
-  let mut list = unsafe {
+  unsafe {
     match SERVER_LIST.lock() {
-      Ok(r) => r,
-      Err(e) => {
-        crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`: {}", e.to_string()));
-        return;
-      }
+      Ok(mut r) => callback(&mut r),
+      Err(e) => crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`: {}", e.to_string()))
     }
-  };
-  
-  callback(&mut list);
-
-  // Unlock `SERVER_LIST` for other threads
-  std::mem::drop(list);
+  }
 }
