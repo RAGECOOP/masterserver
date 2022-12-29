@@ -12,7 +12,7 @@ static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
 fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
   match unsafe { SERVER_LIST.lock() } {
     Ok(mut r) => callback(&mut r),
-    Err(e) => crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`\n{}", e), true)
+    Err(e) => crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`\n{}", e))
   }
 }
 

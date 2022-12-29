@@ -19,10 +19,10 @@ mod post;
 async fn main() -> std::io::Result<()> {
   let conf = config::load_config();
 
-  logger::log("info", format!("port: {}", conf.server.port), false);
-  logger::log("info", format!("workers: {}", conf.server.workers), false);
+  logger::log("info", format!("port: {}", conf.server.port));
+  logger::log("info", format!("workers: {}", conf.server.workers));
 
-  logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port), false);
+  logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port));
   HttpServer::new(|| {
     let cors = Cors::default()
         .allow_any_origin()
