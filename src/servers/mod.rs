@@ -8,6 +8,13 @@ pub mod structs;
 
 /// All servers are stored in this variable
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
+/// Lock `SERVER_LIST` for other threads and call a function
+fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
+  match unsafe { SERVER_LIST.lock() } {
+    Ok(mut r) => callback(&mut r),
+    Err(e) => crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`\n{}", e), true)
+  }
+}
 
 /// Get a clone of the current server list
 pub fn get_list() -> Vec<structs::Server> {
@@ -69,14 +76,4 @@ pub fn cleanup() {
     // Keep all elements that are true and remove others
     list.retain(|x| current_timestamp - x.last_update <= 12);
   });
-}
-
-/// Lock `SERVER_LIST` for other threads and call a function
-fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
-  unsafe {
-    match SERVER_LIST.lock() {
-      Ok(mut r) => callback(&mut r),
-      Err(e) => crate::logger::log("error", format!("something went wrong while trying to lock `SERVER_LIST`: {}", e.to_string()))
-    }
-  }
 }
