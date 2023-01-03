@@ -11,11 +11,11 @@ env:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v3
+    
     - name: Update local toolchain
       run: |
         rustup update
@@ -35,7 +35,7 @@ jobs:
     - name: Test
       run: |
         cargo check
-        cargo check --all
+        cargo test --all
     
     - name: Build (Release)
       run: cargo build --release
