@@ -7,16 +7,29 @@ use actix_web::{
   App,
   web
 };
-use actix_cors::Cors;
 
 mod logger;
 mod config;
 mod servers;
-mod get;
-mod post;
+mod routes;
+
+static mut CURRENT_DIR: String = String::new();
+pub fn get_current_dir() -> &'static String {
+  unsafe {
+    &CURRENT_DIR
+  }
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+  unsafe {
+    CURRENT_DIR = if let Ok(r) = std::env::current_dir() {
+      format!("{}", r.display())
+    } else { // Shouldn't happen
+      String::from(".\\")
+    };
+  };
+
   let conf = config::load_config();
 
   logger::log("info", format!("port: {}", conf.server.port));
@@ -24,24 +37,24 @@ async fn main() -> std::io::Result<()> {
 
   logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port));
   HttpServer::new(|| {
-    let cors = Cors::default()
-        .allow_any_origin()
-        .allowed_methods(vec!["GET", "POST"]);
+    let cors = actix_cors::Cors::default()
+      .allow_any_origin()
+      .allowed_methods(vec!["GET", "POST"]);
     
     App::new()
-        .wrap(cors)
-        .wrap_fn(|req, srv| {
-          servers::cleanup();
-          let fut = srv.call(req);
-          async {
-            let res = fut.await?;
-            Ok(res)
-          }
-        })
-        .route("/", web::post().to(post::server))
-        .route("/", web::get().to(get::server_list))
-        .route("/all", web::get().to(get::all))
-        .route("/count", web::get().to(get::count))
+      .wrap(cors)
+      .wrap_fn(|req, srv| {
+        servers::cleanup();
+        let fut = srv.call(req);
+        async {
+          let res = fut.await?;
+          Ok(res)
+        }
+      })
+      .route("/", web::post().to(routes::post::server))
+      .route("/", web::get().to(routes::get::server_list))
+      .route("/all", web::get().to(routes::get::all))
+      .route("/count", web::get().to(routes::get::count))
   })
   .workers(conf.server.workers as usize)
   .bind(("127.0.0.1", conf.server.port))?

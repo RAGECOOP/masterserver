@@ -1,13 +1,9 @@
-use std::{
-  env,
-  fs
-};
+use std::fs;
 
 mod structs;
 
 pub fn load_config() -> structs::Data {
-  let working_dir = env::current_dir().expect("can't access current dir");
-  let file_path = format!("{}\\config.toml", working_dir.display());
+  let file_path = format!("{}\\config.toml", crate::get_current_dir());
   let file_content = _get_data_from_file(&file_path);
 
   match toml::from_str::<structs::Data>(&file_content) {

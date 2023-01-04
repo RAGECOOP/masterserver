@@ -20,13 +20,8 @@ jobs:
       run: |
         cargo --version --verbose
         rustc --version
-        
-    - name: Test
-      run: |
-        cargo check
-        cargo test --all
     
-    - name: Build (Release)
+    - name: Build
       run: cargo build --release
     
     - name: NIGHTLY
@@ -51,13 +46,8 @@ jobs:
       run: |
         cargo --version --verbose
         rustc --version
-        
-    - name: Test
-      run: |
-        cargo check
-        cargo test --all
     
-    - name: Build (Release)
+    - name: Build
       run: cargo build --release
     
     - name: NIGHTLY

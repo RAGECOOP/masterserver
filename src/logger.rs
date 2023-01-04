@@ -1,7 +1,6 @@
 //! THIS IS JUST A SIMPLE CONSOLE LOGGER!
 
 use std::{
-  env,
   sync::{
     Mutex,
     MutexGuard
@@ -31,8 +30,7 @@ fn _create_log_file(time: &NaiveTime, date: &NaiveDate) {
     if file.is_some() { return; }
 
     // Create a "logs" folder in the current directory if none with that name exists
-    let working_dir = env::current_dir().expect("can't access current dir");
-    let log_path = format!("{}\\logs", working_dir.display());
+    let log_path = format!("{}\\logs", crate::get_current_dir());
     fs::create_dir_all(&log_path).expect("couldn't create `logs` dir");
 
     // create a path to the desired file
