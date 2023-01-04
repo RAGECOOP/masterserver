@@ -23,9 +23,8 @@ pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::struct
   };
 
   // Try using Cloudflare to get the original country from the IP address
-  match req.headers().get("cf-ipcountry") {
-    Some(r) => info.country = String::from(r.to_str().unwrap()),
-    None => {}
+  if let Some(r) = req.headers().get("cf-ipcountry") {
+    info.country = String::from(r.to_str().unwrap());
   }
 
   // We don't host books!

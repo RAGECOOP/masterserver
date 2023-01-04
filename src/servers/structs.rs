@@ -38,7 +38,7 @@ pub struct Server {
 }
 
 impl Server {
-  /// Replace all bad words with `*`
+  /// Replace all bad words.
   pub fn filter_bad_words(&mut self) {
     let censor = censor::Standard + censor::Sex;
     self.name = censor.censor(&self.name);

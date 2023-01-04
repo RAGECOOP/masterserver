@@ -6,9 +6,9 @@ use std::time::SystemTime;
 
 pub mod structs;
 
-/// All servers are stored in this variable
+/// All servers are stored in this variable.
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
-/// Lock `SERVER_LIST` for other threads and call a function
+/// Lock `SERVER_LIST` for other threads and call a function.
 fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::Server>>)) {
   match unsafe { SERVER_LIST.lock() } {
     Ok(mut r) => callback(&mut r),
@@ -16,7 +16,7 @@ fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::S
   }
 }
 
-/// Get a clone of the current server list
+/// Get a clone of the current server list.
 pub fn get_list() -> Vec<structs::Server> {
   let mut result: Vec<structs::Server> = Vec::new();
   _server_list_callback(&mut |list| { result = list.clone(); });
@@ -24,7 +24,8 @@ pub fn get_list() -> Vec<structs::Server> {
 }
 
 /// Check if there is a server with the same IP address and port in the server list so we can update the server.
-/// Otherwise we add this server to the server list
+/// 
+/// Otherwise we add this server to the server list.
 pub fn update_or_insert(info: &mut structs::Server) {
   _server_list_callback(&mut |list| {
     // Try to get the index of the current server position in our list by its address and port
@@ -44,7 +45,6 @@ pub fn update_or_insert(info: &mut structs::Server) {
       };
       info.last_update = current_timestamp;
       
-      // Now clone "info" and push it to the server list
       list.push(info.clone());
     } else {
       // Get a reference from the server via "index" and update some data
@@ -67,7 +67,7 @@ pub fn update_or_insert(info: &mut structs::Server) {
   });
 }
 
-/// Remove all servers from our server list that have not been updated for more than 12 seconds
+/// Remove all servers from our server list that have not been updated for more than 12 seconds.
 pub fn cleanup() {
   _server_list_callback(&mut |list| {
     // Get the current timestamp as seconds in `u64`
