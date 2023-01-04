@@ -29,7 +29,7 @@ jobs:
     - name: Build (Release)
       run: cargo build --release
     
-    - name: NIGHTLY (GNU/Linux)
+    - name: NIGHTLY
       uses: WebFreak001/deploy-nightly@v1.1.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
@@ -60,7 +60,7 @@ jobs:
     - name: Build (Release)
       run: cargo build --release
     
-    - name: NIGHTLY (GNU/Linux)
+    - name: NIGHTLY
       uses: WebFreak001/deploy-nightly@v1.1.0
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # automatically provided by github actions
