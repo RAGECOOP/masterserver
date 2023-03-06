@@ -4,12 +4,12 @@ use actix_web::{
   http::header::ContentType
 };
 
-pub async fn server_list() -> impl Responder {
+pub(crate) async fn server_list() -> impl Responder {
   let servers = crate::servers::get_list();
   HttpResponse::Ok().content_type(ContentType::json()).body(serde_json::to_string(&servers).unwrap())
 }
 
-pub async fn count() -> impl Responder {
+pub(crate) async fn count() -> impl Responder {
   let servers = crate::servers::get_list();
   HttpResponse::Ok().content_type(ContentType::json()).body(json!({
     "server_count": servers.len(),
@@ -17,7 +17,7 @@ pub async fn count() -> impl Responder {
   }).to_string())
 }
 
-pub async fn all() -> impl Responder {
+pub(crate) async fn all() -> impl Responder {
   let servers = crate::servers::get_list();
   HttpResponse::Ok().content_type(ContentType::json()).body(json!({
     "server_count": servers.len(),

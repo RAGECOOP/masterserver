@@ -1,12 +1,12 @@
-use serde_derive::Deserialize;
+use serde::Deserialize;
 
 #[derive(Deserialize)]
-pub struct Data {
+pub(crate) struct Data {
   pub server: Server
 }
 
 #[derive(Deserialize)]
-pub struct Server {
+pub(crate) struct Server {
   pub port: u16,
   pub workers: u16
 }

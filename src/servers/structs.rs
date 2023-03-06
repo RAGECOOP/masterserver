@@ -4,7 +4,7 @@ use serde::{
 };
 
 #[derive(Serialize, Deserialize, Clone)]
-pub struct Server {
+pub(crate) struct Server {
   pub address: String,
   pub port: u16,
   pub name: String,
@@ -48,7 +48,7 @@ impl Server {
 }
 
 #[derive(Serialize, Deserialize, Default, Clone)]
-pub struct PlayerStats {
+pub(crate) struct PlayerStats {
   pub players: Vec<u16>,
   #[serde(skip)]
   pub last_update: u64

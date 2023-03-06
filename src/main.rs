@@ -14,7 +14,7 @@ mod servers;
 mod routes;
 
 static mut CURRENT_DIR: String = String::new();
-pub fn get_current_dir() -> &'static String {
+pub(crate) fn get_current_dir() -> &'static String {
   unsafe {
     &CURRENT_DIR
   }

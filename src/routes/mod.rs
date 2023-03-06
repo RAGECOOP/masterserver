@@ -1,2 +1,2 @@
-pub mod get;
-pub mod post;
+pub(crate) mod get;
+pub(crate) mod post;

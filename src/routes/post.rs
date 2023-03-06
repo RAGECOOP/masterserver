@@ -5,7 +5,7 @@ use actix_web::{
   HttpRequest
 };
 
-pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::structs::Server>) -> impl Responder {
+pub(crate) async fn server(req: HttpRequest, mut info: web::Json<crate::servers::structs::Server>) -> impl Responder {
   // Get the real IP address with Cloudflare
   match req.headers().get("cf-connecting-ip") {
     Some(r) => {
@@ -27,17 +27,49 @@ pub async fn server(req: HttpRequest, mut info: web::Json<crate::servers::struct
     info.country = String::from(r.to_str().unwrap());
   }
 
-  // We don't host books!
-  if info.name.len() > 25
-  || info.description.len() > 390
-  || info.website.len() > 50
-  || info.country.len() > 3
-  || info.public_key_modulus.len() > 344
-  || info.public_key_exponent.len() > 16 {
-    return HttpResponse::BadRequest().body("Your server name, description, website, country, public-key-modulus or public-key-exponent length is too long!");
+  // Make sure the length of this data is not too long
+  if let Some(x) = check_length("name", info.name.len()) {
+    return HttpResponse::BadRequest().body(x);
+  }
+
+  // Make sure the length of this data is not too long
+  if let Some(x) = check_length("description", info.description.len()) {
+    return HttpResponse::BadRequest().body(x);
+  }
+
+  // Make sure the length of this data is not too long
+  if let Some(x) = check_length("website", info.website.len()) {
+    return HttpResponse::BadRequest().body(x);
+  }
+
+  // Make sure the length of this data is not too long
+  if let Some(x) = check_length("country", info.country.len()) {
+    return HttpResponse::BadRequest().body(x);
+  }
+
+  // Make sure the length of this data is not too long
+  if let Some(x) = check_length("public_key_modulus", info.public_key_modulus.len()) {
+    return HttpResponse::BadRequest().body(x);
+  }
+
+  // Make sure the length of this data is not too long
+  if let Some(x) = check_length("public_key_exponent", info.public_key_exponent.len()) {
+    return HttpResponse::BadRequest().body(x);
   }
 
   crate::servers::update_or_insert(&mut info);
 
   HttpResponse::Ok().body("OK")
+}
+
+fn check_length(name: &str, length: usize) -> Option<&str> {
+  match name {
+    "name" if length > 25 => Some("Your `name` is too long!"),
+    "description" if length > 390 => Some("Your `description` is too long!"),
+    "website" if length > 50 => Some("Your `website` is too long!"),
+    "country" if length > 3 => Some("Your `country` is too long!"),
+    "public_key_modulus" if length > 25 => Some("Your `public_key_modulus` is too long!"),
+    "public_key_exponent" if length > 25 => Some("Your `public_key_exponent` is too long!"),
+    _ => None
+  }
 }

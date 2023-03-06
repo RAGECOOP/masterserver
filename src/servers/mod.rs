@@ -4,7 +4,7 @@ use std::sync::{
 };
 use std::time::SystemTime;
 
-pub mod structs;
+pub(crate) mod structs;
 
 /// All servers are stored in this variable.
 static mut SERVER_LIST: Mutex<Vec<structs::Server>> = Mutex::new(Vec::new());
@@ -17,7 +17,7 @@ fn _server_list_callback(callback: &mut dyn FnMut(&mut MutexGuard<Vec<structs::S
 }
 
 /// Get a clone of the current server list.
-pub fn get_list() -> Vec<structs::Server> {
+pub(crate) fn get_list() -> Vec<structs::Server> {
   let mut result: Vec<structs::Server> = Vec::new();
   _server_list_callback(&mut |list| { result = list.clone(); });
   result
@@ -26,7 +26,7 @@ pub fn get_list() -> Vec<structs::Server> {
 /// Check if there is a server with the same IP address and port in the server list so we can update the server.
 /// 
 /// Otherwise we add this server to the server list.
-pub fn update_or_insert(info: &mut structs::Server) {
+pub(crate) fn update_or_insert(info: &mut structs::Server) {
   _server_list_callback(&mut |list| {
     // Try to get the index of the current server position in our list by its address and port
     let index = list.iter().position(|r| r.address == info.address && r.port == info.port);
@@ -68,7 +68,7 @@ pub fn update_or_insert(info: &mut structs::Server) {
 }
 
 /// Remove all servers from our server list that have not been updated for more than 12 seconds.
-pub fn cleanup() {
+pub(crate) fn cleanup() {
   _server_list_callback(&mut |list| {
     // Get the current timestamp as seconds in `u64`
     let current_timestamp = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs();

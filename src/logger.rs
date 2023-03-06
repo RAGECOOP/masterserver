@@ -56,7 +56,7 @@ fn _write_log_file(text: &str) {
 }
 
 /// Write something to our console and log file.
-pub fn log<T: Into<String>>(state: &str, text: T) {
+pub(crate) fn log<T: Into<String>>(state: &str, text: T) {
   let now = Utc::now();
   let time = now.time();
   let date = now.date_naive();
