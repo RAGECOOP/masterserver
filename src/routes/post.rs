@@ -68,8 +68,8 @@ fn check_length(name: &str, length: usize) -> Option<&str> {
     "description" if length > 390 => Some("Your `description` is too long!"),
     "website" if length > 50 => Some("Your `website` is too long!"),
     "country" if length > 3 => Some("Your `country` is too long!"),
-    "public_key_modulus" if length > 25 => Some("Your `public_key_modulus` is too long!"),
-    "public_key_exponent" if length > 25 => Some("Your `public_key_exponent` is too long!"),
+    "public_key_modulus" if length > 344 => Some("Your `public_key_modulus` is too long!"),
+    "public_key_exponent" if length > 16 => Some("Your `public_key_exponent` is too long!"),
     _ => None
   }
 }
