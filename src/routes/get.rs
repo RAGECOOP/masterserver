@@ -1,4 +1,5 @@
 use actix_web::{
+  web,
   Responder,
   HttpResponse,
   http::header::ContentType
@@ -7,6 +8,17 @@ use actix_web::{
 pub(crate) async fn server_list() -> impl Responder {
   let servers = crate::servers::get_list();
   HttpResponse::Ok().content_type(ContentType::json()).body(serde_json::to_string(&servers).unwrap())
+}
+
+pub(crate) async fn server(path: web::Path<(String, u16)>) -> impl Responder {
+  let (address, port) = path.into_inner();
+  let servers = crate::servers::get_list();
+  for i in servers.iter() {
+    if i.address == address && i.port == port {
+      return HttpResponse::Ok().content_type(ContentType::json()).body(serde_json::to_string(i).unwrap())
+    }
+  }
+  HttpResponse::NotFound().finish()
 }
 
 pub(crate) async fn count() -> impl Responder {

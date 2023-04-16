@@ -29,7 +29,7 @@ fn _create_log_file(time: &NaiveTime, date: &NaiveDate) {
     // we already have a file
     if file.is_some() { return; }
 
-    // Create a "logs" folder in the current directory if none with that name exists
+    // create a "logs" folder in the current directory if none with that name exists
     let log_path = format!("{}\\logs", crate::get_current_dir());
     fs::create_dir_all(&log_path).expect("couldn't create `logs` dir");
 

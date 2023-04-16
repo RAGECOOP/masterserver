@@ -30,9 +30,7 @@ pub(crate) struct Server {
   pub public_key_modulus: String,
   #[serde(rename = "publicKeyExponent")]
   pub public_key_exponent: String,
-  // We add these following fields ourselves
-  #[serde(rename = "playerStats", skip_deserializing)]
-  pub player_stats: PlayerStats,
+  // we add these following fields ourselves
   #[serde(skip)]
   pub last_update: u64
 }
@@ -45,11 +43,4 @@ impl Server {
     self.description = censor.censor(&self.description);
     self.website = censor.censor(&self.website);
   }
-}
-
-#[derive(Serialize, Deserialize, Default, Clone)]
-pub(crate) struct PlayerStats {
-  pub players: Vec<u16>,
-  #[serde(skip)]
-  pub last_update: u64
 }

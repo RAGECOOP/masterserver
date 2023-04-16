@@ -24,7 +24,7 @@ pub(crate) fn get_current_dir() -> &'static String {
 async fn main() -> std::io::Result<()> {
   unsafe {
     CURRENT_DIR = if let Ok(r) = std::env::current_dir() {
-      format!("{}", r.display())
+      r.display().to_string()
     } else { // Shouldn't happen
       String::from(".\\")
     };
@@ -34,8 +34,8 @@ async fn main() -> std::io::Result<()> {
 
   logger::log("info", format!("port: {}", conf.server.port));
   logger::log("info", format!("workers: {}", conf.server.workers));
-
   logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port));
+  
   HttpServer::new(|| {
     let cors = actix_cors::Cors::default()
       .allow_any_origin()
@@ -53,6 +53,7 @@ async fn main() -> std::io::Result<()> {
       })
       .route("/", web::post().to(routes::post::server))
       .route("/", web::get().to(routes::get::server_list))
+      .route("/{address}:{port}", web::get().to(routes::get::server))
       .route("/all", web::get().to(routes::get::all))
       .route("/count", web::get().to(routes::get::count))
   })
