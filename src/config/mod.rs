@@ -3,7 +3,7 @@ use std::fs;
 mod structs;
 
 pub(crate) fn load_config() -> structs::Data {
-  let file_path = format!("{}\\config.toml", crate::get_current_dir());
+  let file_path = format!("{}{}config.toml", crate::get_current_dir(), std::path::MAIN_SEPARATOR_STR);
   let file_content = _get_data_from_file(&file_path);
 
   match toml::from_str::<structs::Data>(&file_content) {
