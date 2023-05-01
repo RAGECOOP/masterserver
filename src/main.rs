@@ -34,7 +34,7 @@ async fn main() -> std::io::Result<()> {
 
   logger::log("info", format!("port: {}", conf.server.port));
   logger::log("info", format!("workers: {}", conf.server.workers));
-  logger::log("starting", format!("server on http://127.0.0.1:{}", conf.server.port));
+  logger::log("starting", format!("server on http://{}:{}", conf.server.address, conf.server.port));
   
   HttpServer::new(|| {
     let cors = actix_cors::Cors::default()
@@ -58,7 +58,7 @@ async fn main() -> std::io::Result<()> {
       .route("/count", web::get().to(routes::get::count))
   })
   .workers(conf.server.workers as usize)
-  .bind(("127.0.0.1", conf.server.port))?
+  .bind((conf.server.address, conf.server.port))?
   .run()
   .await
 }

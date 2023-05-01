@@ -30,15 +30,14 @@ fn _create_log_file(time: &NaiveTime, date: &NaiveDate) {
     if file.is_some() { return; }
 
     // create a "logs" folder in the current directory if none with that name exists
-    let log_path = format!("{}\\logs", crate::get_current_dir());
+    let log_path = Path::new(crate::get_current_dir()).join("logs");
     fs::create_dir_all(&log_path).expect("couldn't create `logs` dir");
 
     // create a path to the desired file
-    let file_name = format!("{}\\{}_{}.log", log_path, date, time.format("%H-%M-%S"));
-    let path = Path::new(&file_name);
+    let path = log_path.join(format!("{}_{}.log", date, time.format("%H-%M-%S")));
 
     // open the path in write-only mode
-    match File::create(path) {
+    match File::create(&path) {
       Ok(r) => file.replace(r),
       Err(e) => panic!("couldn't create {}: {}", path.display(), e)
     };
