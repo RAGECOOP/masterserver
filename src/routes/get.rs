@@ -10,7 +10,7 @@ pub(crate) async fn server_list() -> impl Responder {
   HttpResponse::Ok().content_type(ContentType::json()).body(serde_json::to_string(&servers).unwrap())
 }
 
-pub(crate) async fn server(path: web::Path<(String, u16)>) -> impl Responder {
+pub(crate) async fn server(path: web::Path<(String, String)>) -> impl Responder {
   let (address, port) = path.into_inner();
   let servers = crate::servers::get_list();
   for i in servers.iter() {
@@ -41,7 +41,8 @@ pub(crate) async fn all() -> impl Responder {
 fn _get_total_player_count(servers: &Vec<crate::servers::structs::Server>) -> usize {
   let mut result: usize = 0;
   for i in servers.iter() {
-    result += i.players as usize;
+    let players: u16 = i.players.parse().unwrap();
+    result += players as usize;
   }
   result
 }

@@ -43,8 +43,8 @@ pub(crate) fn update_or_insert(info: &mut structs::Server) {
       list.push(info.clone());
     } else {
       // get a reference from the server via "index" and update some data
-      let mut server = list.get_mut(index.unwrap()).unwrap();
-      server.players = info.players;
+      let server = list.get_mut(index.unwrap()).unwrap();
+      server.players = info.players.clone();
       server.last_update = current_timestamp;
     }
   });

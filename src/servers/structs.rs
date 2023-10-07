@@ -6,12 +6,12 @@ use serde::{
 #[derive(Serialize, Deserialize, Clone)]
 pub(crate) struct Server {
   pub address: String,
-  pub port: u16,
+  pub port: String,
   pub name: String,
   pub version: String,
-  pub players: u16,
+  pub players: String,
   #[serde(rename = "maxPlayers")]
-  pub max_players: u16,
+  pub max_players: String,
   pub country: String,
   pub description: String,
   pub website: String,
