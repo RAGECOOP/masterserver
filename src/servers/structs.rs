@@ -1,3 +1,4 @@
+use serde_aux::prelude::*;
 use serde::{
   Serialize,
   Deserialize
@@ -6,11 +7,13 @@ use serde::{
 #[derive(Serialize, Deserialize, Clone)]
 pub(crate) struct Server {
   pub address: String,
+  #[serde(deserialize_with = "deserialize_number_from_string")]
   pub port: u16,
   pub name: String,
   pub version: String,
+  #[serde(deserialize_with = "deserialize_number_from_string")]
   pub players: u16,
-  #[serde(rename = "maxPlayers")]
+  #[serde(rename = "maxPlayers", deserialize_with = "deserialize_number_from_string")]
   pub max_players: u16,
   pub country: String,
   pub description: String,

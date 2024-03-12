@@ -1,4 +1,4 @@
 [server]
 address = "0.0.0.0" # Which address to listen for incoming connections?
-port = 8081 # What port can the server be listed on?
+port = 80 # What port can the server be listed on?
 workers = 2 # How many threads can be used?
